@@ -1,0 +1,40 @@
+import os
+import sys
+from pathlib import Path
+from pydantic_settings import BaseSettings
+
+# Resolve dataset directory relative to this file's location
+_GIS_SERVICE_DIR = Path(__file__).parent.resolve()
+_PROJECT_ROOT    = _GIS_SERVICE_DIR.parent
+
+class Settings(BaseSettings):
+    DATA_ROOT:    str = str(_PROJECT_ROOT / "database")
+    DATABASE_URL: str = "postgresql://postgres:postgres@localhost:5433/prediction_engine"
+    CDS_URL:      str = "https://cds.climate.copernicus.eu/api"
+    CDS_KEY:      str = "7b03be81-0c00-4071-b758-8b810b0637d1"
+    HOST:         str = "0.0.0.0"
+    PORT:         int = 8000
+    BACKEND_URL:  str = "http://localhost:4000"
+    DEM_STUB_MODE:  bool = False
+    SUSC_STUB_MODE: bool = False   # ← Production: real scripts are now used
+
+    # Dataset paths (resolved at startup)
+    DATASET_DIR:   str = str(_PROJECT_ROOT / "Dataset")
+    COAST_SHP:     str = str(_PROJECT_ROOT / "Dataset" / "Coastline_All" / "Coastline_All" / "Coastline_All.shp")
+    INDIA_BND_DIR: str = str(_PROJECT_ROOT / "Dataset" / "India_BND")
+
+    @property
+    def data_root_path(self) -> Path:
+        return Path(self.DATA_ROOT).resolve()
+
+    @property
+    def coast_shp_path(self) -> str:
+        """Return coastline SHP path from env or default."""
+        p = Path(self.COAST_SHP)
+        return str(p) if p.exists() else ""
+
+    class Config:
+        env_file = ".env"
+        extra = "ignore"
+
+settings = Settings()
